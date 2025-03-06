@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Producto</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Reset y estilos base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    header {
+      background-color: #2a9d8f;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    /* Contenedor principal para columnas */
+    .content-container {
+      display: flex;
+      flex-direction: row-reverse; /* Producto a la derecha, recomendaciones a la izquierda */
+      gap: 20px;
+    }
+    /* Estilos para el detalle del producto */
+    #productDetails {
+      flex: 2;
+      padding: 20px;
+      text-align: center;
+      border-left: 1px solid #ddd;
+    }
+    #productDetails img {
+      max-width: 100%;
+      width: 300px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    #productDetails h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #264653;
+    }
+    #productDetails p {
+      font-size: 1rem;
+      margin: 10px 0;
+    }
+    /* Estilos para la sección de recomendaciones */
+    #recommendationsContainer {
+      flex: 1;
+      padding: 20px;
+    }
+    #recommendationsContainer h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #264653;
+      text-align: center;
+    }
+    /* Se muestran las recomendaciones de forma vertical */
+    #recommendationsRow {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    /* Tarjetas de producto en recomendaciones */
+    .product-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .product-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .product-card h3 {
+      font-size: 1.2rem;
+      margin: 10px 0;
+      color: #264653;
+    }
+    .product-card p {
+      font-size: 1rem;
+      margin: 5px 0;
+      color: #555;
+    }
+    /* Estilo para la barra de desplazamiento en recomendaciones */
+    #recommendationsRow::-webkit-scrollbar {
+      width: 8px;
+    }
+    #recommendationsRow::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    #recommendationsRow::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+    #recommendationsRow::-webkit-scrollbar-thumb:hover {
+      background: #aaa;
+    }
+    /* Responsividad */
+    @media (max-width: 768px) {
+      .content-container {
+        flex-direction: column;
+      }
+      #productDetails {
+        border-left: none;
+        border-top: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Detalle del Producto</h1>
+  </header>
+  <main>
+    <div class="content-container">
+      <!-- Sección de recomendaciones en la columna izquierda -->
+      <section id="recommendationsContainer">
+        <h2>Productos Recomendados</h2>
+        <div id="recommendationsRow"></div>
+      </section>
+      <!-- Sección de detalle del producto en la columna derecha -->
+      <section id="productDetails"></section>
+    </div>
+    <a href="index.html"><button>Regresar</button></a>
+  </main>
+  <script>
+    // Obtiene el ID del producto desde la URL (?id=...)
+    function getProductIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    // Llama a la API /get_product/<id> para obtener los detalles del producto
+    async function fetchProductDetails() {
+      const productId = getProductIdFromURL();
+
+      if (!productId) {
+        document.getElementById('productDetails').innerHTML = '<p>No se ha proporcionado un ID de producto.</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5000/get_product/${productId}`);
+        const data = await response.json();
+
+        if (data.error) {
+          document.getElementById('productDetails').innerHTML = `<p>Error: ${data.error}</p>`;
+        } else {
+          document.getElementById('productDetails').innerHTML = `
+            <img src="${data.imagen_url}" alt="${data.nombre}">
+            <h2>${data.nombre}</h2>
+            <p><strong>Descripción:</strong> ${data.descripcion || "Sin descripción"}</p>
+            <p><strong>Precio:</strong> S/.${data.precio}</p>
+            <p><strong>Cantidad:</strong> ${data.cantidad}</p>
+            <p><strong>Categoría ID:</strong> ${data.id_categoria}</p>
+            <p><strong>Marca ID:</strong> ${data.id_marca}</p>
+          `;
+          // Carga las recomendaciones luego de obtener los detalles
+          fetchRecommendations(productId);
+        }
+      } catch (error) {
+        console.error('Error al obtener los detalles del producto:', error);
+        document.getElementById('productDetails').innerHTML =
+          `<p>Error al obtener los detalles del producto.</p>`;
+      }
+    }
+
+    // Llama al endpoint /get_recommendations/<id> y muestra las recomendaciones
+    async function fetchRecommendations(productId) {
+      try {
+        const response = await fetch(`http://localhost:5000/get_recommendations/${productId}`);
+        const data = await response.json();
+        const recommendationsRow = document.getElementById('recommendationsRow');
+        recommendationsRow.innerHTML = ''; // Limpiar recomendaciones previas
+
+        if (data.error) {
+          recommendationsRow.innerHTML = `<p>Error: ${data.error}</p>`;
+        } else if (!data.length) {
+          recommendationsRow.innerHTML = `<p>No se encontraron recomendaciones.</p>`;
+        } else {
+          data.forEach(product => {
+            const card = document.createElement('div');
+            card.classList.add('product-card');
+            card.innerHTML = `
+              <a href="producto.html?id=${product.id}">
+                <img src="${product.imagen_url}" alt="${product.nombre}">
+                <h3>${product.nombre}</h3>
+                <p><strong>Precio:</strong> S/.${product.precio}</p>
+              </a>
+            `;
+            recommendationsRow.appendChild(card);
+          });
+        }
+      } catch (error) {
+        console.error('Error al obtener recomendaciones:', error);
+        document.getElementById('recommendationsRow').innerHTML =
+          `<p>Error al obtener recomendaciones.</p>`;
+      }
+    }
+
+    // Ejecuta la función al cargar la página
+    document.addEventListener('DOMContentLoaded', fetchProductDetails);
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Agregar Producto</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2>Agregar Producto</h2>
+    <form id="productForm" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre del producto" required>
+        <select name="id_categoria" id="categoriaSelect" required>
+            <option value="">Seleccione una categoría</option>
+        </select>
+        <input type="number" step="0.01" name="precio" placeholder="Precio" required>
+        <select name="id_marca" id="marcaSelect" required>
+            <option value="">Seleccione una marca</option>
+        </select>
+        <textarea name="descripcion" placeholder="Descripción"></textarea>
+        <input type="number" name="cantidad" placeholder="Cantidad" required>
+        <input type="file" name="imagen" accept="image/*">
+        <button type="submit">Agregar Producto</button>
+    </form>
+    <p id="mensaje"></p>
+    
+    <div class="section-title">Agregar Nueva Categoría</div>
+    <form id="categoryForm">
+        <input type="text" name="nombre_categoria" placeholder="Nombre de la nueva categoría" required>
+        <button type="submit">Agregar Categoría</button>
+    </form>
+    <p id="mensajeCategoria"></p>
+    
+    <div class="section-title">Agregar Nueva Marca</div>
+    <form id="brandForm">
+        <input type="text" name="nombre_marca" placeholder="Nombre de la nueva marca" required>
+        <button type="submit">Agregar Marca</button>
+    </form>
+    <p id="mensajeMarca"></p>
+    
+    <script>
+        // Cargar las categorías disponibles desde el backend
+        function cargarCategorias() {
+            fetch("http://localhost:5000/categorias")
+                .then(response => response.json())
+                .then(data => {
+                    const categoriaSelect = document.getElementById("categoriaSelect");
+                    categoriaSelect.innerHTML = "<option value=''>Seleccione una categoría</option>";
+                    data.forEach(cat => {
+                        const option = document.createElement("option");
+                        option.value = cat.id;
+                        option.textContent = cat.nombre;
+                        categoriaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error al obtener categorías:", error));
+        }
+        
+        // Cargar las marcas disponibles desde el backend
+        function cargarMarcas() {
+            fetch("http://localhost:5000/marcas")
+                .then(response => response.json())
+                .then(data => {
+                    const marcaSelect = document.getElementById("marcaSelect");
+                    marcaSelect.innerHTML = "<option value=''>Seleccione una marca</option>";
+                    data.forEach(marca => {
+                        const option = document.createElement("option");
+                        option.value = marca.id;
+                        option.textContent = marca.nombre;
+                        marcaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error al obtener marcas:", error));
+        }
+        
+        // Manejo del formulario para agregar producto
+        document.getElementById("productForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch("http://localhost:5000/add_product", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mensaje").textContent = data.message || data.error;
+                if (data.message) {
+                    this.reset();
+                }
+            })
+            .catch(error => console.error("Error al enviar formulario:", error));
+        });
+        
+        // Manejo del formulario para agregar categoría
+        document.getElementById("categoryForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch("http://localhost:5000/add_category", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mensajeCategoria").textContent = data.message || data.error;
+                if (data.message) {
+                    this.reset();
+                    cargarCategorias();
+                }
+            })
+            .catch(error => console.error("Error al agregar categoría:", error));
+        });
+        
+        // Manejo del formulario para agregar marca
+        document.getElementById("brandForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch("http://localhost:5000/add_brand", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mensajeMarca").textContent = data.message || data.error;
+                if (data.message) {
+                    this.reset();
+                    cargarMarcas();
+                }
+            })
+            .catch(error => console.error("Error al agregar marca:", error));
+        });
+        
+        // Al cargar la página se inicializan las categorías y marcas disponibles
+        window.addEventListener("load", () => {
+            cargarCategorias();
+            cargarMarcas();
+        });
+    </script>
+</body>
+</html>

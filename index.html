@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda de Productos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Materiales de Cómputo</h1>
+  </header>
+  
+  <main>
+    <h2>Productos</h2>
+    <div id="productsContainer" class="product-container"></div>
+  </main>
+
+  <script>
+    // Función para obtener productos desde la API usando async/await
+    async function fetchProducts() {
+      try {
+        const response = await fetch('http://localhost:5000/get_products');
+        const data = await response.json();
+        const container = document.getElementById('productsContainer');
+        container.innerHTML = ''; // Limpiar antes de agregar nuevos productos
+
+        if (!data.length) {
+          container.innerHTML = '<p>No se encontraron productos.</p>';
+        } else {
+          data.forEach(product => {
+            const card = document.createElement('div');
+            card.classList.add('product-card');
+
+            // Enlace a producto.html?id=ID_DEL_PRODUCTO
+            card.innerHTML = `
+              <a href="producto.html?id=${product.id}" style="text-decoration: none; color: inherit;">
+                <img src="${product.imagen_url}" alt="${product.nombre}">
+                <h3>${product.nombre}</h3>
+                <p>${product.descripcion || "Sin descripción"}</p>
+                <p><strong>Precio:</strong> S/.${product.precio}</p>
+                <p><strong>Cantidad:</strong> ${product.cantidad}</p>
+              </a>
+            `;
+            container.appendChild(card);
+          });
+        }
+      } catch (error) {
+        console.error('Error al obtener los productos:', error);
+        document.getElementById('productsContainer').innerHTML =
+          '<p>Error al cargar los productos.</p>';
+      }
+    }
+
+    // Cargar los productos cuando el DOM esté completamente cargado
+    document.addEventListener('DOMContentLoaded', fetchProducts);
+  </script>
+</body>
+</html>
